@@ -16,7 +16,7 @@ import {YfmTabsSpecs, YfmTabsSpecsOptions} from './YfmTabs/YfmTabsSpecs';
 
 export * from './Checkbox/CheckboxSpecs';
 export * from './Color/ColorSpecs';
-export * from './ImgSize/ImgSizeSpecs';
+export {ImgSizeSpecs} from './ImgSize/ImgSizeSpecs';
 export * from './Math/MathSpecs';
 export * from './Monospace/MonospaceSpecs';
 export * from './Video/VideoSpecs';
