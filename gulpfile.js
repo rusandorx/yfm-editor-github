@@ -8,8 +8,6 @@ const replace = require('gulp-replace');
 const concat = require('gulp-concat');
 const sass = require('gulp-sass')(require('sass'));
 const pkg = require('./package.json');
-const gulpEsbuild = require('gulp-esbuild');
-const {sassPlugin} = require('esbuild-sass-plugin');
 
 const Module = Object.freeze({
     CJS: 'commonjs',

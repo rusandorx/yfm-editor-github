@@ -17,7 +17,7 @@
     "test": "jest",
     "test:cov": "jest --coverage",
     "test:watch": "jest --watchAll",
-    "test:esbuild": "node tests/esbuild-test/esbuild.config.mjs",
+    "test:esbuild": "npm run build && node tests/esbuild-test/esbuild.config.js",
     "prepublishOnly": "npm run lint && npm run build"
   },
   "repository": {
@@ -106,7 +106,6 @@
     "react-dom": "18.2.0",
     "rimraf": "3.0.2",
     "sass": "^1.64.1",
-    "sass-loader": "^13.3.2",
     "stylelint": "14.13.0",
     "ts-jest": "^27.0.7",
     "typescript": "^4.5.2"
