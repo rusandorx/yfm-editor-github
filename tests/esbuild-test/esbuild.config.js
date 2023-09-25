@@ -6,23 +6,20 @@
 
 const esbuild = require('esbuild');
 const fs = require('fs');
-const fsPromises = require('fs/promises');
+const fsPrmosises = require('fs/promises');
 const path = require('path');
 const {sassPlugin} = require('esbuild-sass-plugin');
 
 const paths = {
-    esmBuild: path.join(__dirname, '../../build/esm'),
     esbuildToTest: path.join(__dirname, './esbuild-to-test.mjs'),
     tempTest: path.join(__dirname, './temp-test.mjs'),
     localBuild: path.join(__dirname, './build'),
-    compiledEsBuildToTest: path.join(__dirname, './build/esbuild-to-test.js'),
+    compiledEsBuildToTest: path.join(__dirname, './build/esbuild-to-test.mjs'),
 };
 
-const getConfig = (entryPoints) => ({
-    entryPoints: entryPoints,
+const esbuildOptions = {
     bundle: true,
     format: 'esm',
-    logLevel: 'info',
     outdir: paths.localBuild,
     loader: {
         '.tsx': 'tsx',
@@ -31,37 +28,27 @@ const getConfig = (entryPoints) => ({
         '.woff2': 'dataurl',
         '.ttf': 'dataurl',
     },
+    outExtension: {
+        '.js': '.mjs',
+    },
     plugins: [sassPlugin()],
-});
+};
 
-if (fs.existsSync(paths.esmBuild)) {
-    esbuild
-        .build(getConfig([paths.esbuildToTest]))
-        .then(() => fsPromises.readFile(paths.compiledEsBuildToTest, {encoding: 'utf-8'}))
-        .then((data) => {
-            const start = data.lastIndexOf('export {');
-            const end = data.indexOf('}', start);
-            let exportString = data.slice(start, end + 1);
-            exportString = exportString
-                .split('\n')
-                .map((line) => {
-                    const [, ...words] = line.split(/\s+/);
-                    return words.length === 3 && words[1] === 'as' ? '  ' + words[2] : line;
-                })
-                .join('\n');
-            return fsPromises.writeFile(paths.tempTest, exportString + " from '../../build/esm'");
-        })
-        .then(() => esbuild.build(getConfig([paths.tempTest])))
-        .then(() => console.log('Built completed'))
-        .finally(() => {
-            // cleanup
-            if (paths.localBuild)
-                fs.rmSync(paths.localBuild, {
-                    force: true,
-                    recursive: true,
-                });
-            if (fs.existsSync(paths.tempTest)) fs.rmSync(paths.tempTest);
-        });
-} else {
-    console.error('Error: No build found');
-}
+esbuild
+    .build({...esbuildOptions, entryPoints: [paths.esbuildToTest]})
+    .then(async () => {
+        const allExports = (await import(paths.compiledEsBuildToTest)).default;
+        await fsPrmosises.writeFile(paths.tempTest, `import {${allExports}} from '../../src'`);
+
+        // Make a file that exports everything from src
+        await esbuild.build({...esbuildOptions, entryPoints: [paths.tempTest]});
+    })
+    .finally(() => {
+        // Cleanup
+        if (fs.existsSync(paths.localBuild))
+            fs.rmSync(paths.localBuild, {
+                force: true,
+                recursive: true,
+            });
+        if (fs.existsSync(paths.tempTest)) fs.rmSync(paths.tempTest);
+    });
