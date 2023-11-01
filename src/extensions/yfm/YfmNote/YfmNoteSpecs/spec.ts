@@ -3,7 +3,10 @@ import {YfmNoteSpecsOptions} from './index';
 import {NoteAttrs, NoteNode} from './const';
 import {PlaceholderOptions} from '../../../../utils/placeholder';
 
-const DEFAULT_TITLE_PLACEHOLDER = 'Note';
+const DEFAULT_PLACEHOLDERS = {
+    Title: 'Note',
+    Content: 'Note content',
+};
 
 export const getSpec = (
     opts?: YfmNoteSpecsOptions,
@@ -14,7 +17,7 @@ export const getSpec = (
             [NoteAttrs.Class]: {default: 'yfm-note yfm-accent-info'},
             [NoteAttrs.Type]: {default: 'info'},
         },
-        content: `${NoteNode.NoteTitle} block+`,
+        content: `${NoteNode.NoteTitle} ${NoteNode.NoteContent}`,
         group: 'block yfm-note',
         parseDOM: [
             {
@@ -52,9 +55,26 @@ export const getSpec = (
             content:
                 placeholder?.[NoteNode.NoteTitle] ??
                 opts?.yfmNoteTitlePlaceholder ??
-                DEFAULT_TITLE_PLACEHOLDER,
+                DEFAULT_PLACEHOLDERS.Title,
             alwaysVisible: true,
         },
+        complex: 'leaf',
+    },
+
+    [NoteNode.NoteContent]: {
+        attrs: {class: {default: 'yfm-note-content'}},
+        content: '(block | paragraph)+',
+        group: 'block yfm-note',
+        parseDOM: [{tag: 'div.yfm-cut-content'}],
+        toDOM(node) {
+            return ['div', node.attrs, 0];
+        },
+        placeholder: {
+            content: placeholder?.[NoteNode.NoteContent] ?? DEFAULT_PLACEHOLDERS.Content,
+            alwaysVisible: true,
+        },
+        selectable: false,
+        allowSelection: false,
         complex: 'leaf',
     },
 });
